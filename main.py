@@ -58,7 +58,7 @@ def main():
                 event_date = datetime.fromisoformat(event_time).date()
                 event_date = datetime.strptime(str(event_date), "%Y-%m-%d").strftime("%m-%d-%Y")
                 event_names_list.append(str(event['summary']) + ":" + str(event_date))
-                event_time_list.append(datetime.fromisoformat(event_time))
+                event_time_list.append(str(datetime.fromisoformat(event_time)))
 
         event_df = pd.DataFrame(event_names_list)
         event_df.columns = ['event_name']
