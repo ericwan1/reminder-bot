@@ -60,14 +60,14 @@ def main():
                 event_names_list.append(str(event['summary']) + ":" + str(event_date))
                 event_time_list.append(str(datetime.fromisoformat(event_time)))
 
+        # The reminder script will fire off 72 hours before, 24 hour, three hours before, and thirty minutes before the event starts.  
         event_df = pd.DataFrame(event_names_list)
         event_df.columns = ['event_name']
         event_df['event_time'] = event_time_list
-        event_df['week_remind'] = False
-        event_df['twoday_remind'] = False
-        event_df['morningof_remind'] = False
-        event_df['hour_remind'] = False
-        event_df['tenmin_remind'] = False
+        event_df['threeday_remind'] = False
+        event_df['day_remind'] = False
+        event_df['threehour_remind'] = False
+        event_df['thirtymin_remind'] = False
         
         # Add the new dataframe to BigQuery
         BQclient = bigquery.Client()
