@@ -13,7 +13,7 @@ import pandas as pd
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
-def main():
+def main(_data,_context):
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -44,21 +44,21 @@ def main():
                                               timeMax=next_seven_days, singleEvents=True,
                                               orderBy='startTime').execute()
         events = events_result.get('items', [])
-
-        if not events:
-            print('No upcoming events found.')
-            return
-
         event_names_list = []
         event_time_list = []
 
         for event in events:
-            if "[GS]" in event['summary']:
+            print(event["summary"])
+            if "[REMINDER-BOT]" in event['summary']:
                 event_time = event['start'].get('dateTime', event['start'].get('date'))
                 event_date = datetime.fromisoformat(event_time).date()
                 event_date = datetime.strptime(str(event_date), "%Y-%m-%d").strftime("%m-%d-%Y")
                 event_names_list.append(str(event['summary']) + ":" + str(event_date))
                 event_time_list.append(str(datetime.fromisoformat(event_time)))
+        
+        if not event_names_list and not event_time_list:
+            print('No events to be reminded of found.')
+            return
 
         # The reminder script will fire off 72 hours before, 24 hour, three hours before, and thirty minutes before the event starts.  
         event_df = pd.DataFrame(event_names_list)
@@ -73,18 +73,18 @@ def main():
         BQclient = bigquery.Client()
         # Check if the calendar event name is aleady inside BigQuery by making a copy of the current table
         # Then we do our merge/insert based on the event name
-        project = "ks-reminder-bot"
-        dataset_id = "gs_event_data"
+        project = "reminder-bot-374300"
+        dataset_id = "event_data"
         dataset_ref = bigquery.DatasetReference(project, dataset_id)
-        table_ref = dataset_ref.table("gs-event-df")
+        table_ref = dataset_ref.table("events-df")
         table = BQclient.get_table(table_ref)
         prod_df = BQclient.list_rows(table).to_dataframe()
         # Take the union and remove rows with duplicate event_name and event_time values (so we keep new events)
-        tables = [event_df, prod_df]
-        union_df = pd.concat(tables)
+        union_df = pd.concat([event_df, prod_df])
         union_df.drop_duplicates(
             subset = ['event_name', 'event_time'],
-            keep = False, inplace = True).reset_index(drop = True)
+            keep = "first", inplace = True)
+        union_df.reset_index(drop = True)
         BQclient.insert_rows_from_dataframe(table, union_df)  
         
 
