@@ -48,7 +48,6 @@ def main(_data,_context):
         event_time_list = []
 
         for event in events:
-            print(event["summary"])
             if "[REMINDER-BOT]" in event['summary']:
                 event_time = event['start'].get('dateTime', event['start'].get('date'))
                 event_date = datetime.fromisoformat(event_time).date()
