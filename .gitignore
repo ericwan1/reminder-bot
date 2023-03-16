@@ -1,4 +1,4 @@
-credentials.json
 *.json
 quickstart.py
+users.csv
 sandbox.py
